@@ -1,53 +1,58 @@
-'use client'
-import React, { useEffect, useState, useContext } from 'react'
-import { supabase } from '@/services/supabaseClient'
-import { UserDetailContext } from '@/context/UserDetailContext'
+"use client";
+import { UserDetailContext } from "@/context/UserDetailContext";
+import { supabase } from "@/services/supabaseClient";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
-// ✅ Main Provider
+import React, { useContext, useEffect, useState } from "react";
+
 function Provider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    CreateNewUser()
-  }, [])
+    createNewUser();
+  }, []);
 
-  const CreateNewUser = () => {
+  //   useEffect(() => {
+  //     console.log("User", user); // ✅ This runs when `user` state changes
+  //   }, [user]);
+
+  const createNewUser = () => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return
-
-      let { data: Users } = await supabase
-        .from('Users')
-        .select('*')
-        .eq('email', user?.email)
-
+      // check if user exists or not
+      let { data: Users, error } = await supabase
+        .from("Users")
+        .select("*")
+        .eq("email", user?.email);
+      console.log(Users);
       if (Users?.length === 0) {
-        const { data } = await supabase.from('Users').insert([
+        const { data, error } = await supabase.from("Users").insert([
           {
             name: user?.user_metadata?.name,
             email: user?.email,
             picture: user?.user_metadata?.picture,
           },
-        ])
-        console.log('Inserted:', data)
-        setUser(user)
-        return
+        ]);
+        console.log(data);
+        setUser(data);
+        return;
       }
-
-      setUser(Users[0])
-    })
-  }
-
+      setUser(Users[0]);
+    });
+  };
   return (
-    <UserDetailContext.Provider value={{ user, setUser }}>
-      <div>{children}</div>
-    </UserDetailContext.Provider>
-  )
+    <PayPalScriptProvider
+      options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
+    >
+      <UserDetailContext.Provider value={{ user, setUser }}>
+        <div>{children}</div>
+      </UserDetailContext.Provider>
+    </PayPalScriptProvider>
+  );
 }
 
-// ✅ Hook to consume the context
+export default Provider;
+
 export const useUser = () => {
-  const context = useContext(UserDetailContext)
-  return context
-}
-
-export default Provider
+  const context = useContext(UserDetailContext);
+  return context;
+};

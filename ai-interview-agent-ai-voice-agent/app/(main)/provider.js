@@ -1,19 +1,21 @@
-import { SidebarProvider } from '@/components/ui/sidebar'
-import React from 'react'
-import { AppSidebar } from './_components/AppSidebar'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import WelcomeContainer from './dashboard/_components/WelcomeContainer'
-function DashboardProvider({children}) {
+"use client";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
+import React from "react";
+import { AppSidebar } from "./_components/AppSidebar";
+import WelcomeContainer from "./dashboard/_components/WelcomeContainer";
+
+function DashboardProvider({ children }) {
   return (
-    <SidebarProvider>
-        <AppSidebar />
-        <div className='w-full p-10'>
-            {/* <SidebarTrigger /> */}
-            <WelcomeContainer />
-            {children}
-        </div>
+    <SidebarProvider className={" bg-gray-100"}>
+      <AppSidebar />
+      <div className="w-full">
+        <SidebarTrigger className="lg:hidden md:block text-primary font-bold mb-4" />
+        <WelcomeContainer />
+        {children}
+      </div>
     </SidebarProvider>
-  )
+  );
 }
 
-export default DashboardProvider
+export default DashboardProvider;

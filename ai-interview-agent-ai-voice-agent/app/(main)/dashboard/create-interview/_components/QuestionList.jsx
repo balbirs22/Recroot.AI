@@ -1,96 +1,128 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { toast } from 'sonner'
-import { Loader2Icon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import QuestionListContainer from './QuestionListContainer'
-import { supabase } from '@/services/supabaseClient'
-import { useUser } from '@/app/provider'
-import {v4 as uuidv4} from 'uuid';
-function QuestionList({formData, onCreateLink}) {
-  const [loading, setLoading] = useState(true)
-  const [questionList, setQuestionList] = useState()
-  const {user} = useUser();
-  const [saveLoading,setSaveLoading]=useState(false);
+"use client";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
+import { Loader, Loader2Icon } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import QuestionListContainer from "./QuestionListContainer";
+import { supabase } from "@/services/supabaseClient";
+import { useUser } from "@/app/provider";
+
+function QuestionList({ formData, onCreateLink }) {
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  const [questionList, setQuestionList] = useState([]);
 
   useEffect(() => {
     if (formData) {
-      GenerateQuestionList()
+      GenerateQuestionList();
     }
-  }, [formData])
-
+  }, [formData]);
   const GenerateQuestionList = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await axios.post('/api/ai-model', { ...formData })
-  
-      console.log("RAW COMPLETION:", result.data.content)
-  
-      const Content = result.data.content
-      const FINAL_CONTENT = Content.replace('```json', '').replace('```', '').trim()
-  
-      // Clean up {{...}} placeholders
-      const cleaned = FINAL_CONTENT.replace(/{{.*?}}/g, '[placeholder]')
-  
-      console.log("CLEANED CONTENT:", cleaned)
-  
-      const parsed = JSON.parse(cleaned)
-      setQuestionList(parsed?.interviewQuestions)
-    } catch (e) {
-      console.error("JSON Parse Error:", e)
-      toast('Error parsing AI response. Please try again.')
-    } finally {
-      setLoading(false)
+      const result = await axios.post("/api/ai-model", {
+        ...formData,
+      });
+
+      let content = result.data;
+
+      if (!content) {
+        toast.error("No content received from server.");
+        setLoading(false);
+        return;
+      }
+
+      // Ensure content is a string
+      if (typeof content !== "string") {
+        content = JSON.stringify(content);
+      }
+
+      // Try to extract JSON block using regex
+      const match = content.match(/```json\s*([\s\S]*?)```/i);
+      const jsonString = match ? match[1].trim() : content.trim();
+
+      let parsed;
+
+      try {
+        parsed = JSON.parse(jsonString);
+      } catch (jsonError) {
+        console.error("Invalid JSON received from server:", content);
+        toast.error("Invalid JSON format received.");
+        setLoading(false);
+        return;
+      }
+
+      if (!parsed || !parsed.interviewQuestions) {
+        toast.error("No interview questions found in the server response.");
+        setLoading(false);
+        return;
+      }
+      setQuestionList(parsed.interviewQuestions || []);
+      // setQuestionList(data);
+      setLoading(false);
+    } catch (error) {
+      toast.error("Server Error,Try again");
+      setLoading(false);
     }
-  }
-
-
-  const onFinish = async () =>{
+  };
+  const onFinish = async () => {
     setSaveLoading(true);
     const interview_id = uuidv4();
-    const {data, error} = await supabase
-    .from('Interviews')
-    .insert([
+    const { data, error } = await supabase
+      .from("Interviews")
+      .insert([
         {
-            ...formData,
-            questionList:questionList,
-            userEmail:user?.email,
-            interview_id:interview_id
-        }
-    ])
-    .select()
-    setSaveLoading(false);
-    console.log(data);
-    onCreateLink(interview_id)
+          ...formData,
+          questionList: questionList,
+          userEmail: user?.email,
+          interview_id: interview_id,
+        },
+      ])
+      .select();
 
-  }
+    //Update User Credits
+    const userUpdate = await supabase
+      .from("Users")
+      .update({ credits: Number(user?.credits) - 1 })
+      .eq("email", user?.email)
+      .select();
+
+    console.log(userUpdate);
+
+    setSaveLoading(false);
+    onCreateLink(interview_id);
+  };
   return (
     <div>
-      {/* Loading UI */}
       {loading && (
-        <div className='p-5 bg-blue-50 rounded-xl border border-primary flex gap-5 items-center'>
-          <Loader2Icon className='animate-spin h-6 w-6 text-primary' />
+        <div className="p-5 bg-blue-50 rounded-xl border border-primary flex gap-5 items-center">
+          <Loader2Icon className="animate-spin" />
           <div>
-            <h2 className='font-medium'>Generating Interview Questions</h2>
-            <p className='text-primary'>
-              Our AI is crafting personalized questions based on your job position
+            <h2 className="font-medium">Generating Interview Questions</h2>
+            <p className="text-primary">
+              Our AI is crafting personalized questions bases on your job
+              positions
             </p>
           </div>
         </div>
       )}
-
-      {/* Questions UI */}
       {!loading && questionList?.length > 0 && (
         <div>
-            <QuestionListContainer questionList={questionList} />
+          <QuestionListContainer questionList={questionList} />
         </div>
       )}
-      <div className='flex justify-end mt-10'>
-        <Button onClick={()=>onFinish()} disabled={saveLoading}>{saveLoading && <Loader2Icon className='animate-spin'/>} Create Interview Link & Finish</Button>
+      <div className="flex justify-end mt-10">
+        <Button onClick={() => onFinish()} disabled={saveLoading}>
+          {saveLoading && <Loader className="animate-spin" />}Created Interview
+          Link & Finish
+        </Button>
       </div>
     </div>
-  )
+  );
 }
 
-export default QuestionList
+export default QuestionList;
