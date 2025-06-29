@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "AI Recruiter",
+  title: "Recroot.AI",
   description:
     "AI-driven interview manager that simplifies scheduling, evaluation, and candidate tracking.",
 };

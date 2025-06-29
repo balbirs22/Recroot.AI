@@ -235,7 +235,7 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-white py-10 px-6 md:px-20 mt-10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold">AI Recruiter</h3>
+            <h3 className="text-lg font-bold">Recroot.AI</h3>
             <p className="text-sm text-gray-400">
               © {new Date().getFullYear()} All rights reserved.
             </p>
