@@ -1,8 +1,7 @@
 "use client";
 import { useUser } from "@/app/provider";
-import { supabase } from "@/services/supabaseClient";
 import { CreditCard, PlusCircle } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import PayButton from "./_components/PayButton";
 
 const plans = [
@@ -32,11 +31,8 @@ const plans = [
 
 function Billing() {
   const user = useUser();
-  let creditsLeft;
-  creditsLeft = user?.user?.credits;
-  useEffect(() => {
-    creditsLeft = user?.user?.credits;
-  }, [user?.user?.credits]);
+  const creditsLeft = user?.user?.credits || 0;
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-2">Billing</h1>
@@ -61,7 +57,7 @@ function Billing() {
           </button>
         </div>
 
-        {/* Purchase Credits */}
+        {/* Purchase Plans */}
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => (
             <div
