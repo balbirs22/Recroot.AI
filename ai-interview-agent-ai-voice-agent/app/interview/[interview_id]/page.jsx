@@ -61,7 +61,7 @@ function Interview() {
         {/* Logo */}
         <div className="flex items-center gap-2 mb-4">
           <Image src="/logo.png" alt="Logo" width={40} height={40} />
-          <h1 className="text-2xl font-bold text-gray-700">AI-Recruiter</h1>
+          <h1 className="text-2xl font-bold text-gray-700">Recroot.AI</h1>
         </div>
 
         {/* Subtitle */}

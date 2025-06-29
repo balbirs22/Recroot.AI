@@ -58,7 +58,7 @@ export default function LandingPage() {
             width={60}
             className="w-[45px] h-[45px]"
           />
-          <span className="text-black">AI</span>Recruiter
+          <span className="text-black">Recroot.</span>AI
         </div>
         <nav className="hidden md:flex gap-6 text-sm">
           <a href="#features" className="hover:text-blue-600">

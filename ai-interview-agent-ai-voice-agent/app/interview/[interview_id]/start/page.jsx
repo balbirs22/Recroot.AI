@@ -116,7 +116,7 @@ function StartInterview() {
     );
 
     const assistantOptions = {
-      name: "AI Recruiter",
+      name: "Recroot.AI",
       firstMessage:
         "Hi " +
         interviewInfo?.userName +
@@ -223,7 +223,7 @@ function StartInterview() {
               "w-[100px] h-[100px]  md:w-[80px] md:h-[80px] xl:w-[120px] xl:h-[120px] object-cover rounded-full "
             }
           />
-          <h2 className=" font-semibold">AI Recruiter</h2>
+          <h2 className=" font-semibold">Recroot.AI</h2>
         </div>
         <div className="bg-white h-[400px] rounded-lg border flex flex-col gap-3 items-center justify-center mt-4 shadow-2xl">
           <div className="relative">
