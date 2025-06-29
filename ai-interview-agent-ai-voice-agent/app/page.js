@@ -271,14 +271,14 @@ export default function LandingPage() {
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">𝕏 Twitter(X):</span>
+                <span className="font-medium text-gray-700">github:</span>
                 <a
-                  href="https://twitter.com/vipinSao1"
+                  href="https://github.com/balbirs22"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                  @vipinSao1
+                  @balbirs22
                 </a>
               </div>
             </div>
