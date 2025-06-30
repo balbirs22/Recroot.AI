@@ -1,4 +1,3 @@
-// backend/routes/aiModel.js
 import express from "express";
 import OpenAI from "openai";
 const router = express.Router();
@@ -6,7 +5,24 @@ const router = express.Router();
 router.post("/", async (req, res) => {
   const { jobPosition, jobDescription, duration, type } = req.body;
 
-  const FINAL_PROMPT = `Generate interview questions for the following:\n\nJob Title: ${jobPosition}\nDescription: ${jobDescription}\nDuration: ${duration}\nType: ${type}`;
+  const FINAL_PROMPT = `You are an expert interviewer. Generate structured interview questions for the following:
+Job Title: ${jobPosition}
+Description: ${jobDescription}
+Duration: ${duration} minutes
+Type: ${type}
+
+Return ONLY the following JSON inside a Markdown code block:
+\`\`\`json
+{
+  "interviewQuestions": [
+    {
+      "question": "Describe a time you solved a UI performance issue.",
+      "type": "Technical"
+    }
+  ]
+}
+\`\`\`
+`;
 
   try {
     const openai = new OpenAI({
@@ -19,14 +35,28 @@ router.post("/", async (req, res) => {
       messages: [{ role: "user", content: FINAL_PROMPT }],
     });
 
-    if (completion.choices?.length > 0) {
-      res.json({ questions: completion.choices[0].message.content });
-    } else {
-      res.status(400).json({ error: "No questions generated." });
+    const content = completion.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return res.status(500).json({ error: "No content returned from AI." });
     }
+
+    // Extract JSON inside ```json ... ```
+    const match = content.match(/```json\s*([\s\S]*?)```/i);
+    const jsonString = match ? match[1].trim() : content.trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonString);
+    } catch (err) {
+      console.error("❌ JSON parse error:", err.message, jsonString);
+      return res.status(500).json({ error: "Invalid JSON returned from AI." });
+    }
+
+    return res.json(parsed);
   } catch (error) {
-    console.error("Question Gen Error:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ OpenRouter API Error:", error.message);
+    return res.status(500).json({ error: "AI generation failed." });
   }
 });
 
