@@ -17,7 +17,7 @@ router.post("/", async (req, res) => {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "openai/gpt-3.5-turbo",
+      model: "mistralai/mistral-small-3.2-24b-instruct:free",
       messages: [{ role: "user", content: FINAL_PROMPT }],
     });
 
