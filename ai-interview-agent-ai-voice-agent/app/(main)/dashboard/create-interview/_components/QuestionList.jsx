@@ -29,24 +29,26 @@ function QuestionList({ formData, onCreateLink }) {
         formData
       );
 
-      const parsed = result.data;
+      console.log("✅ Backend response:", result.data);
 
-      if (parsed.error) {
-        toast.error(parsed.error);
+      if (!result.data || result.data.error) {
+        toast.error(result.data?.error || "No response from server.");
         setLoading(false);
         return;
       }
 
+      const parsed = result.data;
+
       if (!parsed.interviewQuestions || !Array.isArray(parsed.interviewQuestions)) {
-        toast.error("No interview questions found in the response.");
+        toast.error("No valid interview questions returned.");
         setLoading(false);
         return;
       }
 
       setQuestionList(parsed.interviewQuestions);
     } catch (error) {
-      console.error("🚨 AI Generation Error:", error);
-      toast.error("Server Error. Please try again.");
+      console.error("❌ Axios/Network error:", error.response?.data || error.message);
+      toast.error("Unable to connect to backend. Please check your environment or CORS.");
     } finally {
       setLoading(false);
     }
@@ -68,9 +70,7 @@ function QuestionList({ formData, onCreateLink }) {
           },
         ]);
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
       await supabase
         .from("Users")
