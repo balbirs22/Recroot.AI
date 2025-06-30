@@ -1,5 +1,4 @@
 "use client";
-import { PayPalButtons } from "@paypal/react-paypal-js";
 import {
   Dialog,
   DialogContent,
@@ -17,19 +16,51 @@ import React from "react";
 function PayButton({ amount, credits }) {
   const { user } = useUser();
 
-  const onPaymentSuccess = async () => {
-    const { data, error } = await supabase
-      .from("Users")
-      .update({ credits: (user?.credits || 0) + credits })
-      .eq("email", user?.email);
+  const handleRazorpay = async () => {
+    try {
+      const res = await fetch("/api/razorpay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+      });
 
-    if (error) {
-      toast.error("Failed to update credits!");
-      return;
+      const data = await res.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Recroot AI",
+        description: "Interview Credits Purchase",
+        order_id: data.id,
+        handler: async function (response) {
+          const { data: updated, error } = await supabase
+            .from("Users")
+            .update({ credits: (user?.credits || 0) + credits })
+            .eq("email", user?.email);
+
+          if (error) {
+            toast.error("Failed to update credits!");
+          } else {
+            toast.success("Credits added successfully!");
+            window.location.reload();
+          }
+        },
+        prefill: {
+          name: user?.user_metadata?.name || "User",
+          email: user?.email,
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      toast.error("Payment initialization failed");
     }
-
-    toast.success("Successfully added credits!");
-    window.location.reload();
   };
 
   return (
@@ -43,25 +74,13 @@ function PayButton({ amount, credits }) {
         <DialogHeader>
           <DialogTitle>Proceed to Pay</DialogTitle>
           <DialogDescription asChild>
-            <div className="paypal-container w-full max-w-xs mx-auto scale-95">
-              <PayPalButtons
-                style={{ layout: "vertical" }}
-                forceReRender={[amount]}
-                createOrder={(data, actions) =>
-                  actions.order.create({
-                    purchase_units: [
-                      {
-                        amount: {
-                          value: amount,
-                          currency_code: "USD",
-                        },
-                      },
-                    ],
-                  })
-                }
-                onApprove={() => onPaymentSuccess()}
-                onCancel={() => toast("Payment Canceled")}
-              />
+            <div className="flex justify-center">
+              <Button
+                onClick={handleRazorpay}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Pay ₹{amount}
+              </Button>
             </div>
           </DialogDescription>
         </DialogHeader>

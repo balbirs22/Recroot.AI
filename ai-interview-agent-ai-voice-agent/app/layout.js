@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Provider from "./provider";
 import { Toaster } from "@/components/ui/sonner";
+import Script from "next/script"; // ✅ add this line
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,12 @@ export default function RootLayout({ children }) {
           {children}
           <Toaster />
         </Provider>
+
+        {/* ✅ Razorpay script loaded globally */}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
