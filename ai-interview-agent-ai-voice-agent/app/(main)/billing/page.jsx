@@ -7,13 +7,13 @@ import PayButton from "./_components/PayButton";
 const plans = [
   {
     name: "Basic",
-    price: "5",
+    price: "400",
     interviews: 20,
     features: ["Basic interview templates", "Email support"],
   },
   {
     name: "Standard",
-    price: "12",
+    price: "950",
     interviews: 50,
     features: [
       "All interview templates",
@@ -23,7 +23,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "25",
+    price: "1200",
     interviews: 120,
     features: ["All interview templates", "24/7 support", "Advanced analytics"],
   },
@@ -66,7 +66,7 @@ function Billing() {
             >
               <h3 className="text-xl font-semibold mb-1">{plan.name}</h3>
               <p className="text-gray-800 text-2xl font-bold mb-1">
-                ${plan.price}
+                ₹{plan.price}
               </p>
               <p className="text-sm text-gray-500 mb-4">
                 {plan.interviews} interviews
