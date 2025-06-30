@@ -18,7 +18,7 @@ function page() {
         {/* Subtitle */}
         <h2 className="text-gray-600 mb-2 text-center">
           Thank you for particapting in the AI-driven interview with{" "}
-          <span className="text-primary">AIcruiter</span>
+          <span className="text-primary">Recroot.AI</span>
         </h2>
 
         {/* Illustration Image */}
