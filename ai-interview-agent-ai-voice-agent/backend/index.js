@@ -13,6 +13,7 @@ const app = express();
 
 // Allow only Netlify frontend (adjust this if needed)
 const allowedOrigins = [
+  "https://recroot-ai.tech",
   "https://bs-recroot-ai.netlify.app",
   "http://localhost:3000", // for local dev
 ];
