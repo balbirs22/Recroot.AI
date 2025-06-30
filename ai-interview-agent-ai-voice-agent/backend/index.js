@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [
-  "https://ai-interview-agent-gules.vercel.app", // your deployed Vercel domain
+  "https://bs-recroot-ai.netlify.app/", // your deployed Vercel domain
 ];
 
 app.use(express.json());

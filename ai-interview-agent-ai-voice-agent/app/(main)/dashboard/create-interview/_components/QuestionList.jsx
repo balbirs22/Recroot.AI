@@ -24,53 +24,30 @@ function QuestionList({ formData, onCreateLink }) {
   const GenerateQuestionList = async () => {
     setLoading(true);
     try {
-      const result = await axios.post("/api/ai-model", { ...formData });
+      const result = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/ai-model`,
+        formData
+      );
 
-      let content = result.data;
+      const parsed = result.data;
 
-      if (!content) {
-        toast.error("No content received from server.");
+      if (parsed.error) {
+        toast.error(parsed.error);
         setLoading(false);
         return;
       }
 
-      console.log("⚙️ AI RAW Content:", content);
-
-      // Ensure content is a string
-      if (typeof content !== "string") {
-        content = JSON.stringify(content);
-      }
-
-      // Try to extract JSON block using regex
-      let jsonString = content.trim();
-      if (content.includes("```json")) {
-        const match = content.match(/```json\s*([\s\S]*?)```/i);
-        if (match) {
-          jsonString = match[1].trim();
-        }
-      }
-
-      let parsed;
-      try {
-        parsed = JSON.parse(jsonString);
-      } catch (jsonError) {
-        console.error("❌ Failed to parse JSON:", jsonString);
-        toast.error("Invalid JSON format received from AI.");
-        setLoading(false);
-        return;
-      }
-
-      if (!parsed || !Array.isArray(parsed.interviewQuestions)) {
-        toast.error("No interview questions found in the server response.");
+      if (!parsed.interviewQuestions || !Array.isArray(parsed.interviewQuestions)) {
+        toast.error("No interview questions found in the response.");
         setLoading(false);
         return;
       }
 
       setQuestionList(parsed.interviewQuestions);
-      setLoading(false);
     } catch (error) {
       console.error("🚨 AI Generation Error:", error);
       toast.error("Server Error. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -79,27 +56,34 @@ function QuestionList({ formData, onCreateLink }) {
     setSaveLoading(true);
     const interview_id = uuidv4();
 
-    const { data, error } = await supabase
-      .from("Interviews")
-      .insert([
-        {
-          ...formData,
-          questionList,
-          userEmail: user?.email,
-          interview_id,
-        },
-      ])
-      .select();
+    try {
+      const { error: insertError } = await supabase
+        .from("Interviews")
+        .insert([
+          {
+            ...formData,
+            questionList,
+            userEmail: user?.email,
+            interview_id,
+          },
+        ]);
 
-    // Update user credits
-    await supabase
-      .from("Users")
-      .update({ credits: Number(user?.credits) - 1 })
-      .eq("email", user?.email)
-      .select();
+      if (insertError) {
+        throw insertError;
+      }
 
-    setSaveLoading(false);
-    onCreateLink(interview_id);
+      await supabase
+        .from("Users")
+        .update({ credits: Number(user?.credits) - 1 })
+        .eq("email", user?.email);
+
+      onCreateLink(interview_id);
+    } catch (err) {
+      console.error("❌ Error saving interview:", err);
+      toast.error("Failed to save interview.");
+    } finally {
+      setSaveLoading(false);
+    }
   };
 
   return (
