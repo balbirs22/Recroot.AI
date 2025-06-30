@@ -140,7 +140,7 @@ function CandidateFeedbackDialog({ candidate }) {
                     </Button>
                   </Link>
                   <p className="text-sm font-semibold text-zinc-500 mt-2">
-                    mail - vipinc.sao@gmail.com
+                    mail - balbirs2204@gmail.com
                   </p>
                 </div>
               </div>
