@@ -13,7 +13,6 @@ function QuestionList({ formData, onCreateLink }) {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
-
   const [questionList, setQuestionList] = useState([]);
 
   useEffect(() => {
@@ -21,12 +20,11 @@ function QuestionList({ formData, onCreateLink }) {
       GenerateQuestionList();
     }
   }, [formData]);
+
   const GenerateQuestionList = async () => {
     setLoading(true);
     try {
-      const result = await axios.post("/api/ai-model", {
-        ...formData,
-      });
+      const result = await axios.post("/api/ai-model", { ...formData });
 
       let content = result.data;
 
@@ -36,66 +34,74 @@ function QuestionList({ formData, onCreateLink }) {
         return;
       }
 
+      console.log("⚙️ AI RAW Content:", content);
+
       // Ensure content is a string
       if (typeof content !== "string") {
         content = JSON.stringify(content);
       }
 
       // Try to extract JSON block using regex
-      const match = content.match(/```json\s*([\s\S]*?)```/i);
-      const jsonString = match ? match[1].trim() : content.trim();
+      let jsonString = content.trim();
+      if (content.includes("```json")) {
+        const match = content.match(/```json\s*([\s\S]*?)```/i);
+        if (match) {
+          jsonString = match[1].trim();
+        }
+      }
 
       let parsed;
-
       try {
         parsed = JSON.parse(jsonString);
       } catch (jsonError) {
-        console.error("Invalid JSON received from server:", content);
-        toast.error("Invalid JSON format received.");
+        console.error("❌ Failed to parse JSON:", jsonString);
+        toast.error("Invalid JSON format received from AI.");
         setLoading(false);
         return;
       }
 
-      if (!parsed || !parsed.interviewQuestions) {
+      if (!parsed || !Array.isArray(parsed.interviewQuestions)) {
         toast.error("No interview questions found in the server response.");
         setLoading(false);
         return;
       }
-      setQuestionList(parsed.interviewQuestions || []);
-      // setQuestionList(data);
+
+      setQuestionList(parsed.interviewQuestions);
       setLoading(false);
     } catch (error) {
-      toast.error("Server Error,Try again");
+      console.error("🚨 AI Generation Error:", error);
+      toast.error("Server Error. Please try again.");
       setLoading(false);
     }
   };
+
   const onFinish = async () => {
     setSaveLoading(true);
     const interview_id = uuidv4();
+
     const { data, error } = await supabase
       .from("Interviews")
       .insert([
         {
           ...formData,
-          questionList: questionList,
+          questionList,
           userEmail: user?.email,
-          interview_id: interview_id,
+          interview_id,
         },
       ])
       .select();
 
-    //Update User Credits
-    const userUpdate = await supabase
+    // Update user credits
+    await supabase
       .from("Users")
       .update({ credits: Number(user?.credits) - 1 })
       .eq("email", user?.email)
       .select();
 
-    console.log(userUpdate);
-
     setSaveLoading(false);
     onCreateLink(interview_id);
   };
+
   return (
     <div>
       {loading && (
@@ -104,21 +110,20 @@ function QuestionList({ formData, onCreateLink }) {
           <div>
             <h2 className="font-medium">Generating Interview Questions</h2>
             <p className="text-primary">
-              Our AI is crafting personalized questions bases on your job
-              positions
+              Our AI is crafting personalized questions based on your job position...
             </p>
           </div>
         </div>
       )}
+
       {!loading && questionList?.length > 0 && (
-        <div>
-          <QuestionListContainer questionList={questionList} />
-        </div>
+        <QuestionListContainer questionList={questionList} />
       )}
+
       <div className="flex justify-end mt-10">
-        <Button onClick={() => onFinish()} disabled={saveLoading}>
-          {saveLoading && <Loader className="animate-spin" />}Created Interview
-          Link & Finish
+        <Button onClick={onFinish} disabled={saveLoading}>
+          {saveLoading && <Loader className="animate-spin mr-2" />}
+          Created Interview Link & Finish
         </Button>
       </div>
     </div>
