@@ -1,6 +1,5 @@
 import { QUESTIONS_PROMPT } from "@/services/Constants";
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
 export async function POST(req) {
   const { jobPosition, jobDescription, duration, type } = await req.json();
@@ -10,30 +9,30 @@ export async function POST(req) {
     .replace("{{duration}}", duration)
     .replace("{{type}}", type);
 
-  console.log(FINAL_PROMPT);
-
   try {
-    const openai = new OpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: process.env.OPENROUTER_API_KEY,
-    });
-    const completion = await openai.chat.completions.create({
-      model: "microsoft/mai-ds-r1:free",
-      messages: [{ role: "user", content: FINAL_PROMPT }],
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "microsoft/mai-ds-r1:free", // This should be compatible with OpenRouter
+        messages: [{ role: "user", content: FINAL_PROMPT }],
+      }),
     });
 
-    // Log the full completion response for debugging
-    console.log("API Response:", completion);
+    const data = await response.json();
 
-    // Check if choices exist and are not empty
-    if (completion.choices && completion.choices.length > 0) {
-      return NextResponse.json(completion.choices[0].message.content);
+    console.log("OpenRouter Response:", data);
+
+    if (data.choices && data.choices.length > 0) {
+      return NextResponse.json(data.choices[0].message.content);
     } else {
-      // Handle the case where choices is empty or not present
-      return NextResponse.json({ error: "No response from OpenAI model." });
+      return NextResponse.json({ error: "No response from AI model." });
     }
   } catch (e) {
-    console.log("Error", e);
-    return NextResponse.json(e);
+    console.error("Error during AI generation:", e);
+    return NextResponse.json({ error: "AI generation failed." });
   }
 }
