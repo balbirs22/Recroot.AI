@@ -26,7 +26,15 @@ function InterviewDetails() {
         duration,
         interview_id,
         created_at,
-        interview_feedback(userEmail, userName, feedback, created_at)
+        interview_feedback:interview_feedback(
+          id,
+          userName,
+          userEmail,
+          feedback,
+          recommended,
+          created_at,
+          interview_id
+        )
       `)
       .eq("interview_id", interview_id)
       .single();
@@ -35,17 +43,26 @@ function InterviewDetails() {
       console.error("❌ Supabase fetch error:", error);
     }
 
+    // Convert single feedback object to array
+    if (data?.interview_feedback && !Array.isArray(data.interview_feedback)) {
+      data.interview_feedback = [data.interview_feedback];
+    }
+
     setInterviewDetail(data);
-    console.log("Interview Detail:", data); // For debug
+    console.log("Interview Detail:", data);
   };
 
   return (
     <div className="mt-5">
       <h2 className="font-bold text-2xl">Interview Details</h2>
+
       <InterviewDetailContainer interviewDetail={interviewDetail} />
-      {Array.isArray(interviewDetail?.interview_feedback) && (
-        <CandidateList candidate={interviewDetail.interview_feedback} />
-      )}
+
+      {/* Render feedback ONLY if array exists */}
+      {Array.isArray(interviewDetail?.interview_feedback) &&
+        interviewDetail.interview_feedback.length > 0 && (
+          <CandidateList candidate={interviewDetail.interview_feedback} />
+        )}
     </div>
   );
 }
