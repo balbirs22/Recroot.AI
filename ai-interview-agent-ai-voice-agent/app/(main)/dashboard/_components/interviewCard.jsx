@@ -14,7 +14,7 @@ function InterviewCard({ interview, viewDetail = false, index }) {
   };
   const onSend = () => {
     window.location.href =
-      "mailto:vipin.sao@ssipmt.com?subject=AIrcruiter interview link & body=Interview Link=" +
+      "mailto:balbirs2204@gmail.com?subject=AIrcruiter interview link & body=Interview Link=" +
       url;
   };
   console.log(interview["interview-feedback"]);

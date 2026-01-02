@@ -104,7 +104,7 @@ Next.js (App Router)
 
 ## 🤝 Contributions
 
-This project is built and maintained by [Vipin Sao](https://github.com/vipinsao) . Please support this project.
+This project is built and maintained by [Balbir Singh Bhatia](https://github.com/balbirs22) . Please support this project.
 
 ---
 
